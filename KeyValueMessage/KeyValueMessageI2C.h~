@@ -1,0 +1,35 @@
+#ifndef KeyValueMessageI2C_h
+#define KeyValueMessageI2C_h
+
+#include "Arduino.h"
+#include <StandardCplusplus.h>
+#include <vector>
+#include "Wire.h"
+
+struct KeyValuePair
+{
+   String key;
+   String value;
+};
+
+class KeyValueMessageI2C
+{
+  public:
+    KeyValueMessageI2C(char separator = ' ') { _separator = separator; }
+    String KeyValueString(String key, String value);
+    String KeyValueAsIntString(String key, int value);
+    String KeyValueAsDoubleString(String key, double value);
+    String KeyValueAsBoolString(String key, bool value);
+    String ValueOf(String key, String message);
+    static String AvailableMessage(SoftwareSerial& channel, char endOfMessageChar, unsigned long maximumDelayInMilliseconds);
+    std::vector<KeyValuePair> AllKeyValues(String message);
+    static bool ConvertToBool(String value);
+    bool KeyIsPresent(String key, String& message);
+    bool ValueAsInt(String key, String& message, int* dstIntValuePtr);
+    bool ValueAsDouble(String key, String& message, double* dstDoubleValuePtr);
+
+  private:
+    char _separator;
+};
+
+#endif
