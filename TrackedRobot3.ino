@@ -2,9 +2,9 @@
 #include <sstream>
 #include "KeyValueMessage.h"
 #include <Adafruit_NeoPixel.h>
+#include "AFMotor.h"
 
-
-const String version = "TrackedRobot3 V2016-04-06";
+const String version = "TrackedRobot3 V2016-04-14";
 
 // Heartbeat
 const int heartbeatPin = 22;
@@ -17,6 +17,10 @@ bool heartbeatState;
 // KeyValueMessage
 KeyValueMessage interpret;
 const char endOfMessageCharacter = '|';
+
+// DC Motors
+AF_DCMotor motorLeft(1, MOTOR12_64KHZ);
+AF_DCMotor motorRight(2, MOTOR12_64KHZ);
 
 // Contact switches
 const int frontLeftContactSwitchPin = 24;
@@ -44,6 +48,10 @@ void setup()
   lastHeartbeatChange = millis();
   heartbeatState = true;
   digitalWrite(heartbeatPin, heartbeatState);
+  
+  // DC Motors
+  motorLeft.setSpeed(0);
+  motorRight.setSpeed(0);
   
   // Contact switches
   pinMode(frontLeftContactSwitchPin, INPUT);
@@ -114,6 +122,35 @@ void ReceiveMessage()
     
   }
 
+  int valueInt = 0;
+  if (interpret.ValueAsInt("moveForward", msgStr, &valueInt))
+  {
+    RunMotors(valueInt, valueInt);
+  }
+  if (interpret.ValueAsInt("stop", msgStr, &valueInt))
+  {
+    RunMotors(0, 0);
+  }
+  if (interpret.ValueAsInt("turnLeft", msgStr, &valueInt))
+  {
+    RunMotors(-valueInt, valueInt);
+  }
+  if (interpret.ValueAsInt("turnRight", msgStr, &valueInt))
+  {
+    RunMotors(valueInt, -valueInt);
+  }
+  int leftMotorValue = -9999, rightMotorValue = -9999;
+  if (interpret.ValueAsInt("leftMotor", msgStr, &leftMotorValue) | 
+   interpret.ValueAsInt("rightMotor", msgStr, &rightMotorValue) )
+  {
+    if (leftMotorValue == -9999)
+       leftMotorValue = 0;
+    if (rightMotorValue == -9999)
+       rightMotorValue = 0;
+    RunMotors(leftMotorValue, rightMotorValue);
+  }
+  
+  
   if (interpret.KeyIsPresent("headlights", msgStr))
   {
     if (interpret.ValueOf("headlights", msgStr) == "off")
@@ -135,6 +172,30 @@ void ReceiveMessage()
       headlights.setPixelColor(1, rightRed, rightGreen, rightBlue);
       headlights.show();
     }
+  }
+}
+
+void RunMotors(int leftMotorSpeed, int rightMotorSpeed)
+{
+  if (leftMotorSpeed >= 0)
+  {
+    motorLeft.setSpeed(leftMotorSpeed);
+    motorLeft.run(FORWARD);
+  }
+  else
+  {
+    motorLeft.setSpeed(-leftMotorSpeed);
+    motorLeft.run(BACKWARD);
+  }
+  if (rightMotorSpeed >= 0)
+  {
+    motorRight.setSpeed(rightMotorSpeed);
+    motorRight.run(FORWARD);
+  }
+  else
+  {
+    motorRight.setSpeed(-rightMotorSpeed);
+    motorRight.run(BACKWARD);
   }
 }
   
