@@ -3,6 +3,7 @@
 #include "KeyValueMessage.h"
 #include <Adafruit_NeoPixel.h>
 #include "AFMotor.h"
+#include <Servo.h>
 
 const String version = "TrackedRobot3 V2016-04-14";
 
@@ -21,6 +22,11 @@ const char endOfMessageCharacter = '|';
 // DC Motors
 AF_DCMotor motorLeft(1, MOTOR12_64KHZ);
 AF_DCMotor motorRight(2, MOTOR12_64KHZ);
+
+// Servo motors
+Servo neckServo;
+int neckServoTheta;
+int neckServoPin = 9;
 
 // Contact switches
 const int frontLeftContactSwitchPin = 24;
@@ -52,6 +58,11 @@ void setup()
   // DC Motors
   motorLeft.setSpeed(0);
   motorRight.setSpeed(0);
+  
+  // Servos
+  neckServo.attach(neckServoPin);
+  neckServoTheta = 90;
+  neckServo.write(neckServoTheta);
   
   // Contact switches
   pinMode(frontLeftContactSwitchPin, INPUT);
@@ -172,6 +183,23 @@ void ReceiveMessage()
       headlights.setPixelColor(1, rightRed, rightGreen, rightBlue);
       headlights.show();
     }
+  }
+  
+  if (interpret.KeyIsPresent("lookCenter", msgStr) )
+  {
+    neckServoTheta = 90;
+    neckServo.write(neckServoTheta);
+  }
+  int deltaTheta = 0;
+  if (interpret.ValueAsInt("lookLeft", msgStr, &deltaTheta) )
+  {
+    neckServoTheta = neckServoTheta - deltaTheta;
+    neckServo.write(neckServoTheta);
+  }
+  if (interpret.ValueAsInt("lookRight", msgStr, &deltaTheta) )
+  {
+    neckServoTheta = neckServoTheta + deltaTheta;
+    neckServo.write(neckServoTheta);
   }
 }
 
