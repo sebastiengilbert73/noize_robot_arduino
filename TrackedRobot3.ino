@@ -5,7 +5,7 @@
 #include "AFMotor.h"
 #include <Servo.h>
 
-const String version = "TrackedRobot3 V2016-04-14";
+const String version = "TrackedRobot3 V2016-06-09";
 
 // Heartbeat
 const int heartbeatPin = 22;
@@ -37,6 +37,10 @@ const double frontContactSwitchNoRepeatDelay = 0.2;
 // Headlights
 const int headlightsPin = 53;
 Adafruit_NeoPixel headlights = Adafruit_NeoPixel(2, headlightsPin);
+
+// Front laser line
+const int frontLaserLinePin = 26;
+bool frontLaserLineIsOn = false;
 
 bool isDebug = true;
 
@@ -72,6 +76,10 @@ void setup()
   // Headlights
   headlights.begin();
   headlights.show();
+  
+  // Front laser line 
+  pinMode(frontLaserLinePin, OUTPUT);
+  digitalWrite(frontLaserLinePin, frontLaserLineIsOn ? HIGH : LOW);
 }
   
 void loop()
@@ -200,6 +208,18 @@ void ReceiveMessage()
   {
     neckServoTheta = neckServoTheta + deltaTheta;
     neckServo.write(neckServoTheta);
+  }
+  
+  if (interpret.KeyIsPresent("frontLaserLine", msgStr))
+  {
+    if (interpret.ValueOf("frontLaserLine", msgStr) == "on")
+      frontLaserLineIsOn = true;
+    else if (interpret.ValueOf("frontLaserLine", msgStr) == "off")
+      frontLaserLineIsOn = false;
+    else if (interpret.ValueOf("frontLaserLine", msgStr) == "toggle")
+      frontLaserLineIsOn = !frontLaserLineIsOn;
+      
+    digitalWrite(frontLaserLinePin, frontLaserLineIsOn ? HIGH : LOW);
   }
 }
 
